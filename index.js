@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -18,41 +19,40 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const usersCollection = client.db("food-express").collection("users");
-    console.log("dv connected");
+    const userCollection = client.db("food-express").collection("users");
+
+    // Getting user
+
+    app.get('/user', async (req, res) =>{
+        const query = {};
+        const cursor = userCollection.find(query);
+        const user = await cursor.toArray();
+        res.send(user);
+    })
+
+    //Post user
 
     app.post("/user", async (req, res) => {
       const newUser = req.body;
-      const result = await usersCollection.insertOne(newUser);
-      newUser.id = users.length + 1;
-      users.push(newUser);
+      const result = await userCollection.insertOne(newUser);
       res.send(result);
     });
+
+    //delete user
+
+    app.delete('/user/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+
   } finally {
-    //await client.close();
+    
   }
 }
 run().catch(console.dir);
 
-const users = [];
-
-app.get("/user", (req, res) => {
-  if (req.query.name) {
-    const search = req.query.name.toLowerCase();
-    const matched = users.filter((user) =>
-      user.name.toLowerCase().includes(search)
-    );
-    res.send(matched);
-  } else {
-    res.send(users);
-  }
-});
-
-app.get("/user/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const user = users.find((u) => u.id == id);
-  res.send(user);
-});
 
 app.get("/", (req, res) => {
   res.send("Crud server");
