@@ -28,7 +28,14 @@ async function run() {
         const cursor = userCollection.find(query);
         const user = await cursor.toArray();
         res.send(user);
-    })
+    });
+
+    app.get('/user/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    });
 
     //Post user
 
