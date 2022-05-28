@@ -23,21 +23,23 @@ async function run() {
 
     // Getting user
 
-    app.get('/user', async (req, res) =>{
-        const query = {};
-        const cursor = userCollection.find(query);
-        const user = await cursor.toArray();
-        res.send(user);
+    app.get("/user", async (req, res) => {
+      const query = {};
+      const cursor = userCollection.find(query);
+      const user = await cursor.toArray();
+      res.send(user);
     });
 
-    app.get('/user/:id', async (req, res) => {
+    // getting single user by id
+
+    app.get("/user/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const result = await userCollection.findOne(query);
       res.send(result);
     });
 
-    //Post user
+    // Post user
 
     app.post("/user", async (req, res) => {
       const newUser = req.body;
@@ -45,21 +47,35 @@ async function run() {
       res.send(result);
     });
 
-    //delete user
+    // updating user
 
-    app.delete('/user/:id', async (req, res) => {
+    app.put("/user/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
-      const result = await userCollection.deleteOne(query);
+      const updatedUser = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: updatedUser.name,
+          email: updatedUser.email,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
       res.send(result);
     });
 
+    // delete user
+
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
-    
   }
 }
 run().catch(console.dir);
-
 
 app.get("/", (req, res) => {
   res.send("Crud server");
